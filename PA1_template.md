@@ -77,6 +77,90 @@ names(which.max(means))
 
 ## Imputing missing values
 
+1.Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
+```r
+sum(!complete.cases(data))
+```
+
+```
+## [1] 2304
+```
+
+
+2.Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+
+We fill NAs with the mean for that 5-minute interval.
+
+
+
+
+3.Create a new dataset that is equal to the original dataset but with the missing data filled in.
+
+
+```r
+new.data <- transform(data, new.steps = steps)
+for (i in 1:length(new.data$new.steps)) {
+    if (is.na(new.data$steps[i])) {
+        new.data$new.steps[i] <- means[as.character(data$interval[i])]
+    }
+}
+```
+
+
+4.Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+
+```r
+new.sums <- tapply(new.data$new.steps, new.data$date, sum)
+hist(new.sums, col = "Green")
+```
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
+
+```r
+
+mean(new.sums)
+```
+
+```
+## [1] 10766
+```
+
+```r
+median(new.sums)
+```
+
+```
+## [1] 10766
+```
+
+
+The mean and median are not affected much. But the histogram is a little bit different from previously, especially for the middle bin.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1.Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+
+```r
+weekday.factor <- as.factor(ifelse(weekdays(new.data$date) %in% c("Saturday", 
+    "Sunday"), "weekend", "weekday"))
+new.data <- transform(new.data, weekday.factor = weekday.factor)
+```
+
+
+2.Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was creating using simulated data:
+
+
+```r
+mean.steps <- aggregate(new.steps ~ interval + weekday.factor, new.data, mean)
+library(lattice)
+xyplot(new.steps ~ interval | weekday.factor, data = mean.steps, layout = c(1, 
+    2), type = "l", xlab = "Interval", ylab = "Number of steps")
+```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+
+
